@@ -4,40 +4,59 @@ sentence(Start, End):- introduction(Start, Rest), nounphrase(Rest, Rest2), verbp
 sentence(Start, End):- introduction(Start, Rest), verbphrase(Rest, Rest2), nounphrase(Rest2, Rest3), punctuation(Rest3, End).
 sentence(Start, End):- nounphrase(Start, Rest), verbphrase(Rest, Rest2), punctuation(Rest2, End).
 sentence(Start, End):- prepositionalphrase(Start, Rest), nounphrase(Rest, Rest2), verbphrase(Rest2, Rest3), punctuation(Rest3, End).
-sentence(Start, End):-
 
-nounphrase(Start, End):- modifier(Start, Rest), np_part(Rest, Rest2), prepositionalphrase(Rest2, End).
+nounphrase(Start, End):- modifier(Start, Rest), nounbody(Rest, End).
+nounphrase(Start, End):- modifier(Start, Rest), nounbody(Rest, Rest2), prepositionalphrase(Rest2, End).
+nounphrase([Pronoun | End], End):- pronoun(Pronoun).
 
 modifier([Art | End], End):- article(Art).
 modifier([Det | End], End):- determiner(Det).
-modifier([Det, Adj, Noun | End], End):- determiner(Det).
 
-np_part([Pro | End]):- pronoun(Pro).
-np_part([Noun | End]):- noun(Noun).
+nounbody([Noun | End], End):- noun(Noun).
+nounbody([Adj, Noun | End], End):- adjective(Adj), noun(Noun).
 
-np_part([Art, Noun | End]):- article(Art), noun(Noun).
-np_part([Det, Adj, Noun | End]):- determiner(Det), adjective(Adj), noun(Noun).
+verbphrase(Start, End):- fullverbphrase(Start, End).
+verbphrase(Start, End):- multiverbphrase(Start, End).
+verbphrase([Verb, Comma | Rest], End):- verb(Verb), commamark(Comma),  quoted(Rest, End).
+
+fullverbphrase(Start, End):- verbbody(Start, End).
+fullverbphrase([Neg | Rest], End):- negation(Neg), verbbody(Rest, End).
+fullverbphrase(Start, End):- verbbody(Start, Rest), adverbword(Rest, End).
+fullverbphrase(Start, End):- adverbword(Start, Rest), verbbody(Rest, End).
+fullverbphrase([Neg | Rest], End):- negation(Neg), verbbody(Rest, Rest2), adverbword(Rest2, End).
+
+adverbword([Adv | End], End):- adverb(Adv).
 
 verbbody([Verb| End], End):- verb(Verb).
+verbbody([Verb| Rest], End):- verb(Verb), nounphrase(Rest, End).
+verbbody([Verb, Prep | Rest], End):- verb(Verb), preposition(Prep), nounphrase(Rest, End).
+verbbody([Verb, Adv, Prep | Rest], End):- verb(Verb), adverb(Adv), preposition(Prep), nounphrase(Rest, End).
+verbbody([Verb, Pro, Prep | Rest], End):- verb(Verb), pronoun(Pro), preposition(Prep), nounphrase(Rest, End).
 
-verbphrase([Verb| End], End):- verb(Verb).
-verbphrase([Verb| Rest], End):- verb(Verb), nounphrase(Rest, End).
-verbphrase([Verb, Prep | Rest], End):- verb(Verb), preposition(Prep), nounphrase(Rest, End).
-verbphrase([Verb| Rest], End):- verbphrase(Rest, [Con, Rest2]), conjunction(Con), verbphrase(Rest2, End).
+multiverbphrase(Start, End):- fullverbphrase(Start, Rest), conjunctionjoin(Rest, Rest2), fullverbphrase(Rest2, End).
+multiverbphrase(Start, End):- fullverbphrase(Start, Rest), comma(Rest, Rest2), fullverbphrase(Rest2, Rest3), comma(Rest3, Rest4), conjunctionjoin(Rest4, Rest5), fullverbphrase(Rest5, End).
 
+conjunctionjoin([Con | End], End):- conjunction(Con).
 
-prepositionalphrase([Prep, N | End]):- preposition(Prep), np_part(N).
+prepositionalphrase([Prep, N | End], End):- preposition(Prep), noun(N).
+prepositionalphrase([Prep, Det, N | End], End):- preposition(Prep), determiner(Det), noun(N).
+prepositionalphrase([Prep, N | End], End):- preposition(Prep), pronoun(N).
 
-introduction([Intro, Comma | End], End):- introductory(Intro), comma(Comma).
+introduction([Intro, Comma | End], End):- introductory(Intro), commamark(Comma).
 introduction([Intro | End], End):- introductory(Intro).
 
-quoted([Q | Rest], End):- quote(Q), sentence(Rest, Q2), quote(Q2).
+quoted(Start, End):- quote(Start, Rest), sentence(Rest, Rest2), quote(Rest2, End).
 
-punctuation(P | End):- punctuationmark(P).
+quote([Q | End], End):- quotationmark(Q).
+
+comma([C | End], End):- commamark(C).
+
+punctuation([P | End], End):- punctuationmark(P).
+punctuation(End, End).
 
 introductory(so).
 introductory(nope).
-introductory(hey)
+introductory(hey).
 
 conjunction(and).
 conjunction(that).
@@ -74,6 +93,7 @@ pronoun(you).
 pronoun(he).
 pronoun(himself).
 pronoun(which).
+pronoun(i).
 
 verb(walks).
 verb(says).
@@ -83,19 +103,17 @@ verb(ties).
 verb(rubs).
 verb(was).
 verb(responds).
+verb(are).
+verb(am).
 
 preposition(of).
 preposition(into).
 preposition(against).
 preposition(to).
 
-postposition(ago).
+negation(dont).
 
-verb(arent).
-something(dont).
-something(im).
-
-quote('"')
-comma(',')
-punctuationmark('.')
-punctuationmark('?')
+quotationmark('"').
+commamark(',').
+punctuationmark('.').
+punctuationmark('?').
